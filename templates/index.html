@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>⚡ Math Battle Prudhvi – AI Anime Edition</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Boogaloo&family=Nunito:wght@400;700;800;900&family=Bangers&display=swap" rel="stylesheet"/>
+  <style>
+  *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+  :root {
+    --purple:#a855f7; --purple-d:#7c3aed;
+    --yellow:#ffd700; --green:#22c55e;
+    --pink:#ec4899;   --orange:#f97316;
+  }
+  html,body { font-family:'Nunito',sans-serif; color:#fff; min-height:100vh; overflow-x:hidden; -webkit-tap-highlight-color:transparent; }
+  body { background:linear-gradient(160deg,#0d0221 0%,#1a0533 55%,#0f1e40 100%); }
+
+  .star-bg { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
+  .star { position:absolute; background:#fff; border-radius:50%; animation:tw var(--d,3s) var(--dl,0s) ease-in-out infinite; }
+  @keyframes tw { 0%,100%{opacity:.1;} 50%{opacity:.8;} }
+
+  /* Loader */
+  #loader {
+    position:fixed; inset:0; z-index:9999;
+    background:linear-gradient(135deg,#0d0221,#190d42,#2a0a4e);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
+    transition:opacity .7s;
+  }
+  #loader.hide { opacity:0; pointer-events:none; }
+  .load-emoji { font-size:clamp(80px,18vw,130px); animation:lb 2s ease-in-out infinite; }
+  @keyframes lb { 0%,100%{transform:translateY(0) rotate(-5deg);} 50%{transform:translateY(-16px) rotate(5deg);} }
+  .load-title {
+    font-family:'Bangers',cursive; font-size:clamp(2rem,8vw,4rem); text-align:center;
+    background:linear-gradient(135deg,#ffd700,#f97316,#ec4899);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  }
+  .load-sub { font-size:.85rem; color:rgba(255,255,255,.45); letter-spacing:3px; text-transform:uppercase; }
+  .load-track { width:240px; height:7px; background:rgba(255,255,255,.1); border-radius:4px; overflow:hidden; }
+  .load-fill  { height:100%; width:0; background:linear-gradient(90deg,#7c3aed,#ec4899); border-radius:4px; transition:width .08s linear; }
+
+  /* Page */
+  .page { position:relative; z-index:1; max-width:660px; margin:0 auto; padding:20px 16px 70px; }
+
+  .main-title {
+    font-family:'Bangers',cursive;
+    font-size:clamp(2.4rem,9vw,5rem);
+    text-align:center; line-height:1;
+    background:linear-gradient(135deg,#ffd700,#f97316,#ec4899,#a855f7);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    filter:drop-shadow(0 4px 16px rgba(168,85,247,.4));
+    animation:titleIn .6s cubic-bezier(.34,1.56,.64,1);
+    margin-bottom:4px;
+  }
+  @keyframes titleIn { from{transform:scale(.5);opacity:0;} to{transform:scale(1);opacity:1;} }
+  .main-sub { text-align:center; color:rgba(255,255,255,.5); font-weight:700; font-size:.9rem; letter-spacing:2px; text-transform:uppercase; margin-bottom:22px; }
+
+  /* Mascot */
+  .mascot-row { display:flex; align-items:flex-end; justify-content:center; gap:14px; margin-bottom:20px; animation:slideUp .5s .2s both; }
+  @keyframes slideUp { from{transform:translateY(30px);opacity:0;} to{transform:translateY(0);opacity:1;} }
+  .mascot-emoji { font-size:clamp(70px,18vw,110px); animation:bounce 2s ease-in-out infinite; }
+  @keyframes bounce { 0%,100%{transform:translateY(0) rotate(-3deg);} 50%{transform:translateY(-12px) rotate(3deg);} }
+  .mascot-bubble {
+    background:#fff; color:#1a1a2e; border-radius:20px 20px 20px 4px;
+    padding:12px 16px; max-width:190px;
+    font-weight:800; font-size:.88rem; line-height:1.45;
+    box-shadow:0 8px 24px rgba(0,0,0,.25);
+    animation:bubblePop .4s .4s both cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes bubblePop { from{transform:scale(0);opacity:0;} to{transform:scale(1);opacity:1;} }
+  .mascot-bubble span { color:#7c3aed; }
+
+  /* Quick play banner */
+  .quick-banner {
+    background:linear-gradient(135deg,rgba(255,215,0,.12),rgba(249,115,22,.12));
+    border:1.5px solid rgba(255,215,0,.3);
+    border-radius:18px; padding:14px 18px;
+    display:flex; align-items:center; gap:12px;
+    margin-bottom:16px; cursor:pointer; transition:all .2s; user-select:none;
+  }
+  .quick-banner:hover { transform:translateY(-2px); border-color:rgba(255,215,0,.6); background:linear-gradient(135deg,rgba(255,215,0,.2),rgba(249,115,22,.2)); }
+  .quick-banner:active { transform:scale(.98); }
+  .qi  { font-size:2.2rem; flex-shrink:0; }
+  .qt h3 { font-family:'Boogaloo',cursive; font-size:1.1rem; color:var(--yellow); }
+  .qt p  { font-size:.78rem; color:rgba(255,255,255,.5); margin-top:2px; }
+  .qa  { margin-left:auto; font-size:1.4rem; }
+
+  /* Steps */
+  .steps { display:flex; justify-content:center; gap:8px; margin-bottom:14px; }
+  .sdot { width:10px; height:10px; border-radius:50%; background:rgba(255,255,255,.18); transition:all .3s; }
+  .sdot.active { background:var(--purple); transform:scale(1.35); }
+  .sdot.done   { background:var(--green); }
+
+  /* Screens */
+  .screen { display:none; }
+  .screen.active { display:block; animation:scIn .35s ease; }
+  @keyframes scIn { from{opacity:0;transform:translateY(18px);} to{opacity:1;transform:translateY(0);} }
+
+  /* Card */
+  .card {
+    background:rgba(255,255,255,.07); border:1.5px solid rgba(255,255,255,.12);
+    border-radius:22px; padding:22px 18px; backdrop-filter:blur(12px); margin-bottom:12px;
+  }
+  .card-title { font-family:'Boogaloo',cursive; font-size:1.3rem; color:var(--yellow); margin-bottom:16px; text-align:center; }
+
+  /* Option grid */
+  .og { display:grid; gap:10px; }
+  .g2 { grid-template-columns:1fr 1fr; }
+  .g4 { grid-template-columns:repeat(4,1fr); }
+  @media(max-width:440px){ .g4{grid-template-columns:1fr 1fr;} }
+
+  .obtn {
+    display:flex; flex-direction:column; align-items:center; gap:5px;
+    padding:14px 8px; border-radius:16px; border:2px solid rgba(255,255,255,.12);
+    background:rgba(255,255,255,.06); cursor:pointer; transition:all .18s;
+    font-family:'Nunito',sans-serif; color:#fff;
+  }
+  .obtn:hover { transform:translateY(-3px); border-color:var(--purple); }
+  .obtn.on { background:linear-gradient(135deg,#7c3aed,#a855f7); border-color:#c084fc; box-shadow:0 6px 18px rgba(124,58,237,.4); transform:translateY(-2px); }
+  .oi { font-size:1.7rem; }
+  .ol { font-weight:800; font-size:.85rem; }
+  .od { font-size:.7rem; opacity:.6; }
+
+  /* Char grid */
+  .char-grid { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+  .cbtn {
+    display:flex; flex-direction:column; align-items:center; gap:5px;
+    padding:14px 18px; border-radius:16px; border:2px solid rgba(255,255,255,.12);
+    background:rgba(255,255,255,.06); cursor:pointer; transition:all .18s; color:#fff;
+  }
+  .cbtn:hover { transform:translateY(-3px); }
+  .cbtn.on { border-color:var(--pink); background:rgba(236,72,153,.18); box-shadow:0 4px 18px rgba(236,72,153,.35); }
+  .ce { font-size:2.5rem; }
+  .cn { font-weight:800; font-size:.82rem; }
+  .cs { font-size:.68rem; opacity:.5; }
+
+  /* Team inputs */
+  .team-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .tf { flex:1; min-width:130px; }
+  .tf label { display:block; font-weight:800; font-size:.85rem; margin-bottom:6px; color:rgba(255,255,255,.75); }
+  .tf input {
+    width:100%; padding:13px 15px; border-radius:14px;
+    border:2px solid rgba(255,255,255,.18); background:rgba(255,255,255,.09);
+    color:#fff; font-family:'Nunito',sans-serif; font-size:.95rem; font-weight:700;
+    outline:none; transition:border-color .2s,background .2s;
+  }
+  .tf input:focus { border-color:var(--purple); background:rgba(168,85,247,.15); }
+  .tf input::placeholder { color:rgba(255,255,255,.25); }
+  .vs { background:var(--yellow); color:#1a1a2e; border-radius:50%; width:40px; height:40px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-family:'Bangers',cursive; font-size:1rem; margin-top:22px; box-shadow:0 4px 14px rgba(255,215,0,.4); }
+
+  /* Buttons */
+  .btn { display:block; width:100%; padding:18px; border-radius:18px; border:none; font-family:'Bangers',cursive; font-size:1.5rem; letter-spacing:1.5px; color:#fff; cursor:pointer; transition:all .18s; text-align:center; margin-top:4px; }
+  .btn:hover { transform:translateY(-3px) scale(1.02); }
+  .btn:active { transform:scale(.97); }
+  .btn.green  { background:linear-gradient(135deg,#22c55e,#15803d); box-shadow:0 8px 22px rgba(34,197,94,.4); }
+  .btn.purple { background:linear-gradient(135deg,#7c3aed,#a855f7); box-shadow:0 8px 22px rgba(124,58,237,.4); }
+  .btn.outline { background:rgba(255,255,255,.08); border:1.5px solid rgba(255,255,255,.22); font-size:1rem; font-family:'Nunito',sans-serif; font-weight:800; padding:14px; }
+
+  .back-btn { background:none; border:none; color:rgba(255,255,255,.45); font-family:'Nunito',sans-serif; font-weight:700; font-size:.88rem; cursor:pointer; padding:6px 0; margin-bottom:8px; display:inline-flex; align-items:center; gap:4px; transition:color .2s; }
+  .back-btn:hover { color:#fff; }
+
+  /* Leaderboard */
+  .lb-table { width:100%; border-collapse:collapse; }
+  .lb-table th { font-family:'Boogaloo',cursive; color:var(--yellow); padding:7px 10px; text-align:left; border-bottom:1px solid rgba(255,255,255,.1); font-size:.9rem; }
+  .lb-table td { padding:8px 10px; font-weight:700; font-size:.85rem; border-bottom:1px solid rgba(255,255,255,.05); }
+  .mt { display:inline-block; padding:1px 8px; border-radius:20px; font-size:.7rem; font-weight:800; }
+  .mt.battle   { background:rgba(59,130,246,.3);  color:#93c5fd; }
+  .mt.speed    { background:rgba(234,179,8,.3);   color:#fde047; }
+  .mt.tugofwar { background:rgba(168,85,247,.3);  color:#d8b4fe; }
+  .mt.practice { background:rgba(34,197,94,.3);   color:#86efac; }
+
+  /* Music FAB */
+  .music-fab { position:fixed; bottom:20px; right:20px; z-index:200; width:50px; height:50px; border-radius:50%; border:none; background:linear-gradient(135deg,#7c3aed,#a855f7); color:#fff; font-size:1.3rem; cursor:pointer; box-shadow:0 4px 16px rgba(124,58,237,.5); display:flex; align-items:center; justify-content:center; transition:transform .2s; }
+  .music-fab:hover { transform:scale(1.1); }
+  </style>
+</head>
+<body>
+
+<div class="star-bg" id="star-bg"></div>
+
+<!-- Loader -->
+<div id="loader">
+  <div class="load-emoji" id="load-emoji">🧙‍♀️</div>
+  <div class="load-title">MATH BATTLE Prudhvi</div>
+  <div class="load-sub">AI Anime Edition ✨</div>
+  <div class="load-track"><div class="load-fill" id="load-fill"></div></div>
+</div>
+
+<button class="music-fab" id="music-btn">🎵</button>
+
+<div class="page">
+
+  <h1 class="main-title">⚡ MATH BATTLE Prudhvi ⚡</h1>
+  <p class="main-sub">AI Anime Edition — For Kids!</p>
+
+  <!-- Mascot -->
+  <div class="mascot-row">
+    <div class="mascot-emoji" id="mascot-emoji">🧙‍♀️</div>
+    <div class="mascot-bubble">
+      Hi! I'm <span>Prudhvi</span>! 🌟<br/>
+      Ready to battle? 💥<br/>
+      Pick your settings below!
+    </div>
+  </div>
+
+  <!-- ⚡ QUICK PLAY — most visible CTA -->
+  <div class="quick-banner" onclick="quickPlay()">
+    <span class="qi">⚡</span>
+    <div class="qt">
+      <h3>Quick Play! (Instant Start)</h3>
+      <p>Jump in right now with default settings — Easy, Team Battle</p>
+    </div>
+    <span class="qa">▶️</span>
+  </div>
+
+  <!-- Step dots -->
+  <div class="steps" id="steps">
+    <div class="sdot active"></div>
+    <div class="sdot"></div>
+    <div class="sdot"></div>
+    <div class="sdot"></div>
+  </div>
+
+  <!-- ── STEP 0: Character ───────────────────────────── -->
+  <div class="screen active" id="s0">
+    <div class="card">
+      <div class="card-title">🎭 Step 1 of 4 — Choose Your Companion</div>
+      <div class="char-grid">
+        <button class="cbtn on" data-char="Prudhvi"  onclick="pickChar(this)"><span class="ce">🧙‍♀️</span><span class="cn">Prudhvi</span><span class="cs">Power Star</span></button>
+        <button class="cbtn"    data-char="abc"   onclick="pickChar(this)"><span class="ce">🦊</span><span class="cn">abc</span><span class="cs">Allu Arjun</span></button>
+        <button class="cbtn"    data-char="bbb"  onclick="pickChar(this)"><span class="ce">🌸</span><span class="cn">bbb</span><span class="cs">MB</span></button>
+        <button class="cbtn"    data-char="ccc" onclick="pickChar(this)"><span class="ce">🐉</span><span class="cn">ccc</span><span class="cs">NTR</span></button>
+      </div>
+    </div>
+    <button class="btn purple" onclick="go(1)">NEXT ➡ Choose Game Mode</button>
+  </div>
+
+  <!-- ── STEP 1: Mode ───────────────────────────────── -->
+  <div class="screen" id="s1">
+    <button class="back-btn" onclick="go(0)">← Back</button>
+    <div class="card">
+      <div class="card-title">🎮 Step 2 of 4 — Game Mode</div>
+      <div class="og g2">
+        <button class="obtn on" data-val="battle"   onclick="pick(this,'mode')"><span class="oi">⚔️</span><span class="ol">Team Battle</span><span class="od">Blue vs Red</span></button>
+        <button class="obtn"    data-val="tugofwar" onclick="pick(this,'mode')"><span class="oi">🪢</span><span class="ol">Tug of War</span><span class="od">5 pulls wins!</span></button>
+        <button class="obtn"    data-val="speed"    onclick="pick(this,'mode')"><span class="oi">⚡</span><span class="ol">Speed Round</span><span class="od">60-sec blitz</span></button>
+        <button class="obtn"    data-val="practice" onclick="pick(this,'mode')"><span class="oi">📚</span><span class="ol">Practice</span><span class="od">Solo, no stress</span></button>
+      </div>
+    </div>
+    <button class="btn purple" onclick="go(2)">NEXT ➡ Enter Team Names</button>
+  </div>
+
+  <!-- ── STEP 2: Names ──────────────────────────────── -->
+  <div class="screen" id="s2">
+    <button class="back-btn" onclick="go(1)">← Back</button>
+    <div class="card">
+      <div class="card-title">👥 Step 3 of 4 — Team Names</div>
+      <div class="team-row">
+        <div class="tf"><label>💙 Blue Team</label><input type="text" id="inp-blue" placeholder="Team Blue" maxlength="16"/></div>
+        <div class="vs">VS</div>
+        <div class="tf"><label>❤️ Red Team</label><input type="text" id="inp-red" placeholder="Team Red" maxlength="16"/></div>
+      </div>
+      <p id="ph" style="margin-top:10px;font-size:.78rem;color:rgba(255,255,255,.35);text-align:center;"></p>
+    </div>
+    <button class="btn purple" onclick="go(3)">NEXT ➡ Choose Difficulty</button>
+  </div>
+
+  <!-- ── STEP 3: Difficulty + LAUNCH ───────────────── -->
+  <div class="screen" id="s3">
+    <button class="back-btn" onclick="go(2)">← Back</button>
+    <div class="card">
+      <div class="card-title">🎯 Step 4 of 4 — Difficulty</div>
+      <div class="og g4">
+        <button class="obtn on" data-val="easy"   onclick="pick(this,'diff')"><span class="oi">😊</span><span class="ol">Easy</span><span class="od">+ and −</span></button>
+        <button class="obtn"    data-val="medium" onclick="pick(this,'diff')"><span class="oi">😎</span><span class="ol">Medium</span><span class="od">× tables</span></button>
+        <button class="obtn"    data-val="hard"   onclick="pick(this,'diff')"><span class="oi">🔥</span><span class="ol">Hard</span><span class="od">÷ division</span></button>
+        <button class="obtn"    data-val="auto"   onclick="pick(this,'diff')"><span class="oi">🤖</span><span class="ol">Auto AI</span><span class="od">Adapts!</span></button>
+      </div>
+    </div>
+
+    <!-- ★ THE BIG LAUNCH BUTTON ★ -->
+    <button class="btn green" id="launch-btn" onclick="launchGame()" style="font-size:1.8rem;padding:22px;">
+      🚀 START BATTLE!
+    </button>
+  </div>
+
+  <!-- Leaderboard -->
+  <div style="margin-top:12px;">
+    <button class="btn outline" onclick="toggleLB()">🏆 View Hall of Champions</button>
+  </div>
+  <div id="lb-panel" style="display:none;margin-top:14px;">
+    <div class="card">
+      <div class="card-title">🏆 Hall of Champions</div>
+      <div id="lb-body"><p style="color:rgba(255,255,255,.35);text-align:center;font-size:.9rem;">No battles yet — be the first! 🌟</p></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────
+const S = { char:"aria", mode:"battle", diff:"easy" };
+const EMOJIS = { aria:"🧙‍♀️", kai:"🦊", luna:"🌸", blaze:"🐉" };
+
+// ── Character select ───────────────────────────────────────────────────
+function pickChar(el) {
+  document.querySelectorAll(".cbtn").forEach(b => b.classList.remove("on"));
+  el.classList.add("on");
+  S.char = el.dataset.char;
+  document.getElementById("mascot-emoji").textContent = EMOJIS[S.char];
+}
+
+// ── Option select (mode / diff) ────────────────────────────────────────
+function pick(el, key) {
+  el.closest(".og").querySelectorAll(".obtn").forEach(b => b.classList.remove("on"));
+  el.classList.add("on");
+  S[key] = el.dataset.val;
+  if (key === "mode") {
+    document.getElementById("ph").textContent =
+      S.mode === "practice" ? "In practice mode only one player is needed 😊" : "";
+  }
+}
+
+// ── Navigation ─────────────────────────────────────────────────────────
+function go(n) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById("s" + n).classList.add("active");
+  document.querySelectorAll(".sdot").forEach((d, i) => {
+    d.classList.toggle("active", i === n);
+    d.classList.toggle("done",   i < n);
+  });
+  window.scrollTo({ top: 0, behavior:"smooth" });
+}
+
+// ── Launch game (main path) ────────────────────────────────────────────
+function launchGame() {
+  const blue = document.getElementById("inp-blue").value.trim() || "Team Blue";
+  const red  = document.getElementById("inp-red").value.trim()  || "Team Red";
+  const btn  = document.getElementById("launch-btn");
+  btn.textContent = "🌟 Starting...";
+  btn.style.opacity = ".75";
+  btn.disabled = true;
+
+  const url = "/game?" + new URLSearchParams({
+    blue, red, mode: S.mode, diff: S.diff, char: S.char
+  }).toString();
+
+  window.location.href = url;
+}
+
+// ── Quick play ─────────────────────────────────────────────────────────
+function quickPlay() {
+  window.location.href = "/game?blue=Team+Blue&red=Team+Red&mode=battle&diff=easy&char=Prudhvi";
+}
+
+// ── Leaderboard ────────────────────────────────────────────────────────
+let lbOpen = false;
+async function toggleLB() {
+  lbOpen = !lbOpen;
+  document.getElementById("lb-panel").style.display = lbOpen ? "block" : "none";
+  if (lbOpen) {
+    try {
+      const r = await fetch("/api/leaderboard");
+      const d = await r.json();
+      const el = document.getElementById("lb-body");
+      if (!d.length) return;
+      const medals = ["🥇","🥈","🥉","4️⃣","5️⃣","6️⃣","7️⃣","8️⃣","9️⃣","🔟"];
+      el.innerHTML = `<table class="lb-table">
+        <tr><th>#</th><th>Winner</th><th>Score</th><th>Mode</th><th>Date</th></tr>
+        ${d.map((e,i) => `<tr>
+          <td>${medals[i]||i+1}</td>
+          <td>${e.winner}</td>
+          <td style="color:#ffd700;">${e.score} pts</td>
+          <td><span class="mt ${e.mode||'battle'}">${e.mode||'battle'}</span></td>
+          <td style="color:rgba(255,255,255,.4);font-size:.75rem;">${e.date||''}</td>
+        </tr>`).join("")}
+      </table>`;
+    } catch(err) {}
+  }
+}
+
+// ── Stars ──────────────────────────────────────────────────────────────
+(function(){
+  const bg = document.getElementById("star-bg");
+  for (let i = 0; i < 70; i++) {
+    const s = document.createElement("div"); s.className = "star";
+    const sz = 1 + Math.random() * 4;
+    s.style.cssText = `width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${2+Math.random()*5}s;--dl:${Math.random()*5}s;`;
+    bg.appendChild(s);
+  }
+})();
+
+// ── Loader ─────────────────────────────────────────────────────────────
+(function(){
+  const fill = document.getElementById("load-fill");
+  const emojis = ["🧙‍♀️","🦊","🌸","🐉","⭐","🔢","💥","✨"];
+  const emoji  = document.getElementById("load-emoji");
+  let pct = 0, ei = 0;
+  const iv = setInterval(() => {
+    pct += 3 + Math.random() * 7;
+    fill.style.width = Math.min(pct, 100) + "%";
+    if (pct % 18 < 7) emoji.textContent = emojis[ei++ % emojis.length];
+    if (pct >= 100) {
+      clearInterval(iv);
+      setTimeout(() => {
+        document.getElementById("loader").classList.add("hide");
+        setTimeout(() => { const l = document.getElementById("loader"); if(l) l.remove(); }, 800);
+      }, 300);
+    }
+  }, 60);
+})();
+
+// ── Music ──────────────────────────────────────────────────────────────
+let AC=null, musicOn=false, musicTm=null, mi=0;
+const MELODY=[261,329,392,261,392,523,392,329];
+function getAC(){ if(!AC){const C=window.AudioContext||window.webkitAudioContext;if(C)AC=new C();}return AC; }
+function playNote(f){
+  const c=getAC();if(!c)return;if(c.state==="suspended")c.resume();
+  const o=c.createOscillator(),g=c.createGain();
+  o.type="sine";o.frequency.value=f;
+  g.gain.setValueAtTime(.06,c.currentTime);
+  g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.5);
+  o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+.5);
+}
+function bgLoop(){if(!musicOn)return;playNote(MELODY[mi++%MELODY.length]);musicTm=setTimeout(bgLoop,600);}
+document.getElementById("music-btn").addEventListener("click",()=>{
+  musicOn=!musicOn;
+  document.getElementById("music-btn").textContent=musicOn?"🔇":"🎵";
+  if(musicOn)bgLoop();else clearTimeout(musicTm);
+});
+
+// Check if coming back from game (show LB hint)
+if (new URLSearchParams(location.search).get("lb") === "1") {
+  setTimeout(() => toggleLB(), 600);
+}
+</script>
+</body>
+</html>
