@@ -1,4 +1,4 @@
-# ⚡ Math Battle Arena – AI Anime Edition
+# ⚡ Math Battle – AI Anime Edition
 
 > A colorful, animated math competition game for primary school children (age 6–12).  
 > Built with **Python Flask** + **Vanilla HTML/CSS/JS**. Zero paid APIs. Zero database required.
